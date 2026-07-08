@@ -1,0 +1,14 @@
+{
+  "name": "activated-mock-project",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mock product installation demonstrating Activate framework usage",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "node --test"
+  }
+}

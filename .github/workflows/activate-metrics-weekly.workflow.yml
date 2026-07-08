@@ -1,0 +1,72 @@
+# Distributable template — copy to .github/workflows/ in the pilot repo as
+# part of installing the Activate Metrics module. See README.md Installation.
+#
+# Runs the baseline-capture scripts weekly during the 6-week rollout window,
+# commits the raw snapshot via PR, and leaves the human write-up (friction
+# log, gate status) to the rollout-monitor skill run by the facilitator.
+name: Activate Metrics Weekly Snapshot
+
+on:
+  schedule:
+    # Fridays at 13:00 UTC — adjust to the pilot team's timezone/cadence.
+    - cron: '0 13 * * 5'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  weekly-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine week number
+        id: week
+        run: |
+          mkdir -p .github/activate/weekly
+          count=$(find .github/activate/weekly -name 'week-*-snapshot.json' | wc -l | tr -d ' ')
+          next=$((count + 1))
+          echo "number=${next}" >> "$GITHUB_OUTPUT"
+
+      - name: Pull GitHub baseline-window metrics
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash .github/skills/baseline-capture/scripts/pull-github-baseline.sh \
+            "${{ github.repository }}" > /tmp/github-metrics.json
+
+      - name: Attempt Copilot usage pull
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash .github/skills/baseline-capture/scripts/pull-copilot-metrics.sh \
+            "${{ github.repository_owner }}" "${{ github.repository }}" > /tmp/copilot-metrics.json
+
+      - name: Assemble weekly snapshot
+        run: |
+          jq -n \
+            --slurpfile gh /tmp/github-metrics.json \
+            --slurpfile cp /tmp/copilot-metrics.json \
+            --arg week "${{ steps.week.outputs.number }}" \
+            --arg date "$(date -u +%Y-%m-%d)" \
+            '{ week: ($week | tonumber), date_captured: $date, github: $gh[0], copilot: $cp[0] }' \
+            > ".github/activate/weekly/week-${{ steps.week.outputs.number }}-snapshot.json"
+
+      - name: Open pull request with the raw snapshot
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: "activate-metrics/week-${{ steps.week.outputs.number }}-snapshot"
+          commit-message: "chore: week ${{ steps.week.outputs.number }} activate metrics snapshot"
+          title: "chore: week ${{ steps.week.outputs.number }} activate metrics snapshot"
+          body: |
+            Automated raw metrics pull for week ${{ steps.week.outputs.number }} of the Activate Metrics rollout.
+
+            This PR only adds the raw snapshot. Run the `rollout-monitor` skill after merging
+            to turn it into this week's health check (friction log, gate status, blockers) —
+            that write-up needs a human, not just this Action.
+          labels: activate-metrics

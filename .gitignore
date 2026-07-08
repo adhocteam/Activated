@@ -1,0 +1,6 @@
+activate-framework.tar.gz
+node_modules/
+coverage/
+.env
+.env.*
+npm-debug.log*
