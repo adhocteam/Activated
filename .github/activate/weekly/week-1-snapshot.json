@@ -1,0 +1,29 @@
+{
+  "week": 1,
+  "date_captured": "2026-09-18",
+  "github": {
+    "repo": "adhocteam/Activated",
+    "window_since": "2026-06-20T13:08:06Z",
+    "source": "github-api",
+    "confidence": "high",
+    "metrics": {
+      "prs_merged_90d": 0,
+      "avg_pr_cycle_hours": null,
+      "avg_review_comments_per_pr": null,
+      "pr_rework_rate_pct": null
+    }
+  },
+  "copilot": {
+    "org": "adhocteam",
+    "repo": "adhocteam/Activated",
+    "source": "proxy",
+    "confidence": "low",
+    "note": "Directional only — infers Copilot involvement from commit trailers and bot PR authorship, not verified usage telemetry.",
+    "metrics": {
+      "commits_with_copilot_coauthor_90d": 0,
+      "total_commits_90d": 1,
+      "prs_opened_by_copilot_90d": 0,
+      "total_prs_90d": 1
+    }
+  }
+}
