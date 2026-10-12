@@ -29,3 +29,39 @@ test("createOpportunity appends valid record", () => {
   assert.equal(result.value.agency, "USCIS");
   assert.equal(result.value.id, "opp-003");
 });
+
+test("createOpportunity rejects unknown fields", () => {
+  const countBefore = listOpportunities().length;
+  const result = createOpportunity({
+    agency: "GSA",
+    title: "Login.gov Rollout",
+    stage: "triage",
+    owner: "product-manager",
+    priority: "high"
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.error, "Unknown field: priority");
+  assert.equal(listOpportunities().length, countBefore);
+});
+
+test("createOpportunity lists every unknown field", () => {
+  const result = createOpportunity({
+    id: "opp-999",
+    agency: "GSA",
+    title: "Login.gov Rollout",
+    stage: "triage",
+    owner: "product-manager",
+    priority: "high"
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.error, "Unknown fields: id, priority");
+});
+
+test("createOpportunity reports unknown fields before missing ones", () => {
+  const result = createOpportunity({ title: "Partial", notes: "extra" });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.error, "Unknown field: notes");
+});
