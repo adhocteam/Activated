@@ -15,13 +15,23 @@ const opportunities = [
   }
 ];
 
+const allowedFields = ["agency", "title", "stage", "owner"];
+
 export function listOpportunities() {
   return opportunities;
 }
 
 export function createOpportunity(candidate) {
-  const requiredFields = ["agency", "title", "stage", "owner"];
-  const missingField = requiredFields.find((field) => !candidate[field]);
+  const unknownFields = Object.keys(candidate).filter((field) => !allowedFields.includes(field));
+
+  if (unknownFields.length > 0) {
+    return {
+      ok: false,
+      error: `Unknown field${unknownFields.length > 1 ? "s" : ""}: ${unknownFields.join(", ")}`
+    };
+  }
+
+  const missingField = allowedFields.find((field) => !candidate[field]);
 
   if (missingField) {
     return {
